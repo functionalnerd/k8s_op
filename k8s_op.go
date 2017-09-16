@@ -9,6 +9,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/kubernetes"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 /*
 	"sync"
 	"time"
@@ -29,7 +31,7 @@ type OperatorConfig struct {
 }
 
 type HdfsController struct {
-	clientSet       *kubernetes.Clientset
+	ClientSet       *kubernetes.Clientset
 	//restClient      *rest.RESTClient
 	//clusterInformer *cache.SharedInformer
 	cfg             *OperatorConfig
@@ -39,12 +41,14 @@ func main() {
   NewHdfsOperatorLib()
 }
 
-func NewHdfsOperatorLib() (*HdfsController, error) {
+func NewHdfsOperatorLib() (*HdfsController) {
     op, err := NewHdfsOperator(OperatorConfig{})
     if err != nil {
         fmt.Println("Failed to initialize the Hdfs operator: %s", err)
-        return nil, err
+        return nil
     }
+
+    deletePod(op)
 
 /*
     fmt.Println("Running operator")
@@ -54,7 +58,7 @@ func NewHdfsOperatorLib() (*HdfsController, error) {
 	//go zookeeper.UpdateZookeeperCluster(ctx, controller.clientSet, newSpec, oldSpec, controller.cfg)
 
 	fmt.Println("Hello, world.\n")
-    return op, nil
+    return op
 }
 
 // NewHdfsOperator is the constructor for Hdfs operators and creates all the initial clients needed
@@ -79,7 +83,7 @@ func NewHdfsOperator(cfg OperatorConfig) (*HdfsController, error) {
 */
 
     controller := &HdfsController{
-        clientSet:  clientSet,
+        ClientSet:  clientSet,
         //restClient: restClient,
         cfg:        &cfg,
     }
@@ -119,6 +123,16 @@ func inClusterConfig() (*rest.Config, error) {
     return nil, nil
 }
 
+func deletePod(op *HdfsController) {
+    podname := "jumbo-test-test-busybox"
+    opts := metav1.NewDeleteOptions(0)
+    opts.PropagationPolicy = &[]metav1.DeletionPropagation{metav1.DeletePropagationForeground}[0]
+
+    if err := op.ClientSet.CoreV1().Pods("hdfs").Delete(podname, opts); err != nil {
+        fmt.Println("failed to delete pod %s", podname)
+    }
+}
+
 
 /*
 func restartPod(ctx context.Context, clientset *kubernetes.Clientset, spec *ZookeeperClusterSpec, instance int) error {
@@ -149,10 +163,5 @@ func restartPod(ctx context.Context, clientset *kubernetes.Clientset, spec *Zook
     log.INFO(ctx).Printf("Pod %s started", podname)
     return nil
 }
-*/
-
-/*
-import "context"
-ctx := context.Background()
 */
 
