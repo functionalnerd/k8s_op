@@ -36,9 +36,14 @@ type HdfsController struct {
 }
 
 func main() {
-    _, err := NewHdfsOperator(OperatorConfig{})
+  NewHdfsOperatorLib()
+}
+
+func NewHdfsOperatorLib() (*HdfsController, error) {
+    op, err := NewHdfsOperator(OperatorConfig{})
     if err != nil {
         fmt.Println("Failed to initialize the Hdfs operator: %s", err)
+        return nil, err
     }
 
 /*
@@ -49,6 +54,7 @@ func main() {
 	//go zookeeper.UpdateZookeeperCluster(ctx, controller.clientSet, newSpec, oldSpec, controller.cfg)
 
 	fmt.Println("Hello, world.\n")
+    return op, nil
 }
 
 // NewHdfsOperator is the constructor for Hdfs operators and creates all the initial clients needed
@@ -149,3 +155,4 @@ func restartPod(ctx context.Context, clientset *kubernetes.Clientset, spec *Zook
 import "context"
 ctx := context.Background()
 */
+
